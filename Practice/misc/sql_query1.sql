@@ -1,0 +1,342 @@
+--Pivot
+Drop table if exists #Temp_SIH_UA
+SELECT * into #Temp_SIH_UA 
+FROM(select * FROM dbo.Stag_SupplierInvoiceHeader_UserArea
+)as a 
+PIVOT(MAX(SupplierInvoiceHeader_UserArea_NameValue_#text)FOR SupplierInvoiceHeader_UserArea_NameValue_@name IN([fsm.AccountingEntity],[fsm.CancelledDateTime],[fsm.CashCode],[fsm.CreateDateTime],[fsm.CreatedBy],[fsm.Enclosure],
+[fsm.FinanceEnterpriseGroup],[fsm.FiscalPeriod],[fsm.FiscalYear],[fsm.GeneralLedgerCompany],[fsm.Generic_Delimiter],[fsm.Hold],[fsm.HoldCode],[fsm.HoldCodeCreateDate],[fsm.HoldCodeDeleteDate],[fsm.IncomeCode],[fsm.IncomeWithholding],[fsm.InvoiceNumber],
+[fsm.PayablesInvoice],[fsm.PaymentDate],[fsm.PaymentStatus],[fsm.ProcessedBy],[fsm.ReceiptOfInvoiceDate],[fsm.Reference],[fsm.SeparatePayment],[fsm.Voucher],[lcl.FiscalPeriod],[lcl.FiscalYear]))as PVT
+ORDER BY ApplicationArea_BODID
+--Pivot
+Drop table if exists #Temp_SIH_CC
+select * into #Temp_SIH_CC 
+FROM(select * FROM dbo.Stag_SupplierInvoiceHeader_ClassificationCodes)as a 
+PIVOT(MAX(SupplierInvoiceHeader_Classificationcodes_#text)FOR SupplierInvoiceHeader_Classificationcodes_@listID IN(VendorGroup,CashCode))as PVT 
+ORDER BY ApplicationArea_BODID 
+--Pivot
+Drop table if exists #Temp_SIH_SP_CC
+select * into #Temp_SIH_SP_CC 
+from(select * FROM dbo.Stag_SupplierInvoiceHeader_SupplierParty_ContactCommunication)as a 
+PIVOT(MAX(SupplierInvoiceHeader_ContactCommunication_DialNumber)FOR SupplierInvoiceHeader_ContactCommunication_ChannelCode IN(EMail,Phone))as PVT 
+ORDER BY ApplicationArea_BODID
+--Join pivot tables
+Drop table if exists #Temp_Mstr_SIH
+SELECT
+a.ApplicationArea_CreationDateTime
+,a.ApplicationArea_BODID
+,a.Sync_AccountingEntityID
+,a.Sync_ActionCriteria_ActionExpression_@actionCode
+,a.SupplierInvoice_@type
+,a.SupplierInvoiceHeader_DocumentID_ID_@accountingEntity
+,a.SupplierInvoiceHeader_DocumentID_ID_@variationID
+,a.SupplierInvoiceHeader_DocumentID_ID_#text
+,a.SupplierInvoiceHeader_AlternateDocumentID_ID_@variationID
+,a.SupplierInvoiceHeader_AlternateDocumentID_ID_#text
+,a.SupplierInvoiceHeader_DisplayID
+,a.SupplierInvoiceHeader_LastModificationDateTime
+,a.SupplierInvoiceHeader_LastModificationPerson_IDs_ID
+,a.SupplierInvoiceHeader_DocumentDateTime
+,a.SupplierInvoiceHeader_DocumentReference_DocumentID_ID_#text
+,a.SupplierInvoiceHeader_ExtendedAmount_#text
+,a.SupplierInvoiceHeader_ExtendedBaseAmount_#text
+,a.SupplierInvoiceHeader_TotalAmount_#text
+,a.SupplierInvoiceHeader_TotalBaseAmount_#text
+,a.SupplierInvoiceHeader_SupplierParty_PartyIDs_ID
+,a.SupplierInvoiceHeader_SupplierParty_PartyIDs_TaxID
+,a.SupplierInvoiceHeader_SupplierParty_Name
+,a.SupplierInvoiceHeader_SupplierParty_Location_Address_AttentionOfName
+,a.SupplierInvoiceHeader_SupplierParty_Location_Address_AddressLine_#text
+,a.SupplierInvoiceHeader_SupplierParty_Location_Address_CityName
+,a.SupplierInvoiceHeader_SupplierParty_Location_Address_CountrySubDivisionCode
+,a.SupplierInvoiceHeader_SupplierParty_Location_Address_CountryCode
+,a.SupplierInvoiceHeader_SupplierParty_Location_Address_PostalCode
+,a.SupplierInvoiceHeader_SupplierParty_Contact_Name
+,a.SupplierInvoiceHeader_RemitToParty_PartyIDs_ID
+,a.SupplierInvoiceHeader_RemitToParty_Name
+,a.SupplierInvoiceHeader_PurchaseOrderReference_DocumentID_ID_@accountingEntity
+,a.SupplierInvoiceHeader_PurchaseOrderReference_DocumentID_ID_#text
+,a.SupplierInvoiceHeader_PaymentTerm_DocumentDateTime
+,a.SupplierInvoiceHeader_PaymentTerm_Description
+,a.SupplierInvoiceHeader_PaymentTerm_PaymentTermCode_#text
+,a.SupplierInvoiceHeader_PaymentTerm_Discount_Amount_#text
+,a.SupplierInvoiceHeader_PaymentTerm_Discount_BaseAmount_#text
+,a.SupplierInvoiceHeader_PaymentTerm_Discount_ReportAmount_#text
+,a.SupplierInvoiceHeader_PaymentTerm_PaymentSchedule_Term_@type
+,a.SupplierInvoiceHeader_PaymentTerm_PaymentSchedule_Term_ID
+,a.SupplierInvoiceHeader_PaymentTerm_PaymentSchedule_Term_Description
+,a.SupplierInvoiceHeader_PaymentTerm_PaymentSchedule_Term_DueDateTime
+,a.SupplierInvoiceHeader_PaymentTerm_PaymentSchedule_Term_DiscountPercent
+,a.SupplierInvoiceHeader_PaymentMethodCode
+,a.SupplierInvoiceHeader_Status_Code_@listID
+,a.SupplierInvoiceHeader_Status_Code_#text
+,a.SupplierInvoiceHeader_Status_EffectiveDateTime
+,a.SupplierInvoiceHeader_CurrencyExchangeRate_RateNumeric
+,a.SupplierInvoiceHeader_BaseCurrencyAmount_Amount_#text
+,a.SupplierInvoiceHeader_ShipFromParty_PartyIDs_ID_#text
+,a.SupplierInvoiceHeader_ShipFromParty_Name
+,a.[fsm.AccountingEntity]
+,a.[fsm.CancelledDateTime]
+,a.[fsm.CashCode]
+,a.[fsm.CreateDateTime]
+,a.[fsm.CreatedBy]
+,a.[fsm.Enclosure]
+,a.[fsm.FinanceEnterpriseGroup]
+,a.[fsm.FiscalPeriod]
+,a.[fsm.FiscalYear]
+,a.[fsm.GeneralLedgerCompany]
+,a.[fsm.Generic_Delimiter]
+,a.[fsm.Hold],[fsm.HoldCode]
+,a.[fsm.HoldCodeCreateDate]
+,a.[fsm.HoldCodeDeleteDate]
+,a.[fsm.IncomeCode]
+,a.[fsm.IncomeWithholding]
+,a.[fsm.InvoiceNumber]
+,a.[fsm.PayablesInvoice]
+,a.[fsm.PaymentDate]
+,a.[fsm.PaymentStatus]
+,a.[fsm.ProcessedBy]
+,a.[fsm.ReceiptOfInvoiceDate]
+,a.[fsm.Reference]
+,a.[fsm.SeparatePayment]
+,a.[fsm.Voucher]
+,a.[lcl.FiscalPeriod]
+,a.[lcl.FiscalYear]
+,b.VendorGroup
+,b.CashCode
+,c.EMail
+,c.Phone
+into #Temp_Mstr_SIH 
+from #Temp_SIH_UA a 
+inner join #Temp_SIH_CC b 
+on a.SupplierInvoiceHeader_DocumentID_ID_#text=b.SupplierInvoiceHeader_DocumentID_ID_#text 
+and a.SupplierInvoiceHeader_DocumentID_ID_@variationID=b.SupplierInvoiceHeader_DocumentID_ID_@variationID 
+inner join #Temp_SIH_SP_CC c 
+on a.SupplierInvoiceHeader_DocumentID_ID_#text=c.SupplierInvoiceHeader_DocumentID_ID_#text 
+and a.SupplierInvoiceHeader_DocumentID_ID_@variationID=c.SupplierInvoiceHeader_DocumentID_ID_@variationID 
+--Delete Duplicates
+;WITH SIH as 
+(SELECT *,ROW_NUMBER()over(PARTITION BY SupplierInvoiceHeader_DocumentID_ID_@variationID,SupplierInvoiceHeader_DocumentID_ID_#text,ApplicationArea_CreationDateTime
+ORDER BY SupplierInvoiceHeader_DocumentID_ID_@variationID,SupplierInvoiceHeader_DocumentID_ID_#text,ApplicationArea_CreationDateTime)as RN 
+FROM #Temp_Mstr_SIH)
+Delete FROM SIH WHERE RN>1
+--Delete older records
+Delete from #Temp_Mstr_SIH
+from #Temp_Mstr_SIH a
+where exists(select * from #Temp_Mstr_SIH b
+where a.SupplierInvoiceHeader_DocumentID_ID_@variationID=b.SupplierInvoiceHeader_DocumentID_ID_@variationID
+and a.SupplierInvoiceHeader_DocumentID_ID_#text=b.SupplierInvoiceHeader_DocumentID_ID_#text
+and a.ApplicationArea_CreationDateTime<b.ApplicationArea_CreationDateTime
+)
+
+--Split column Code from UserArea
+drop table if exists #Temp_CC_FSM_PID 
+;WITH Splitted
+AS(
+SELECT *,CAST('<x>'+ REPLACE(SupplierInvoiceHeader_Distribution_Classification_Codes_Code,',','</x><x>')+'</x>' AS XML) AS Parts
+FROM Stag_SupplierInvoiceHeader_Distribution_UserArea
+)
+SELECT distinct Sync_AccountingEntityID,Sync_ActionCriteria_ActionExpression_@actionCode,ApplicationArea_Sender_LogicalID,ApplicationArea_CreationDateTime,ApplicationArea_BODID,SupplierInvoiceHeader_DocumentID_ID_@accountingEntity,SupplierInvoiceHeader_DocumentID_ID_@location,SupplierInvoiceHeader_DocumentID_ID_@variationID,SupplierInvoiceHeader_DocumentID_ID_#text,SupplierInvoiceHeader_AlternateDocumentID_ID_@accountingEntity,SupplierInvoiceHeader_AlternateDocumentID_ID_@schemeName,SupplierInvoiceHeader_AlternateDocumentID_ID_@variationID,SupplierInvoiceHeader_AlternateDocumentID_ID_#text,SupplierInvoiceHeader_DisplayID,SupplierInvoiceHeader_LastModificationDateTime,SupplierInvoiceHeader_LastModificationPerson_IDs_ID,SupplierInvoiceHeader_DocumentDateTime,SupplierInvoiceHeader_DocumentReference_@type,SupplierInvoiceHeader_DocumentReference_DocumentID_ID_@accountingEntity,SupplierInvoiceHeader_DocumentReference_DocumentID_ID_@location,SupplierInvoiceHeader_DocumentReference_DocumentID_ID_#text,SupplierInvoiceHeader_ExtendedAmount_@currencyID,SupplierInvoiceHeader_ExtendedAmount_#text,SupplierInvoiceHeader_ExtendedBaseAmount_@currencyID,SupplierInvoiceHeader_ExtendedBaseAmount_#text,SupplierInvoiceHeader_TotalAmount_@currencyID,SupplierInvoiceHeader_TotalAmount_#text,SupplierInvoiceHeader_TotalBaseAmount_@currencyID,SupplierInvoiceHeader_TotalBaseAmount_#text,SupplierInvoiceHeader_SupplierParty_PartyIDs_ID,SupplierInvoiceHeader_SupplierParty_PartyIDs_TaxID,SupplierInvoiceHeader_SupplierParty_Name,SupplierInvoiceHeader_SupplierParty_Location_Address_AttentionOfName,SupplierInvoiceHeader_SupplierParty_Location_Address_AddressLine_@sequence,SupplierInvoiceHeader_SupplierParty_Location_Address_AddressLine_#text,SupplierInvoiceHeader_SupplierParty_Location_Address_CityName,SupplierInvoiceHeader_SupplierParty_Location_Address_CountrySubDivisionCode,SupplierInvoiceHeader_SupplierParty_Location_Address_CountryCode,SupplierInvoiceHeader_SupplierParty_Location_Address_PostalCode,SupplierInvoiceHeader_SupplierParty_Contact_ID,SupplierInvoiceHeader_SupplierParty_Contact_Name,SupplierInvoiceHeader_RemitToParty_PartyIDs_ID,SupplierInvoiceHeader_RemitToParty_Name,SupplierInvoiceHeader_PurchaseOrderReference_DocumentID_ID_@accountingEntity,SupplierInvoiceHeader_PurchaseOrderReference_DocumentID_ID_#text,SupplierInvoiceHeader_PaymentTerm_DocumentDateTime,SupplierInvoiceHeader_PaymentTerm_Description,SupplierInvoiceHeader_PaymentTerm_PaymentTermCode_@accountingEntity,SupplierInvoiceHeader_PaymentTerm_PaymentTermCode_#text,SupplierInvoiceHeader_PaymentTerm_Discount_Amount_@currencyID,SupplierInvoiceHeader_PaymentTerm_Discount_Amount_#text,SupplierInvoiceHeader_PaymentTerm_Discount_BaseAmount_@currencyID,SupplierInvoiceHeader_PaymentTerm_Discount_BaseAmount_#text,SupplierInvoiceHeader_PaymentTerm_Discount_ReportAmount_@currencyID,SupplierInvoiceHeader_PaymentTerm_Discount_ReportAmount_#text,SupplierInvoiceHeader_PaymentTerm_PaymentSchedule_Term_@type,SupplierInvoiceHeader_PaymentTerm_PaymentSchedule_Term_ID,SupplierInvoiceHeader_PaymentTerm_PaymentSchedule_Term_Description,SupplierInvoiceHeader_PaymentTerm_PaymentSchedule_Term_DueDateTime,SupplierInvoiceHeader_PaymentTerm_PaymentSchedule_Term_DiscountPercent,SupplierInvoiceHeader_PaymentMethodCode,SupplierInvoiceHeader_Status_EffectiveDateTime,SupplierInvoiceHeader_CurrencyExchangeRate_RateNumeric,SupplierInvoiceHeader_BaseCurrencyAmount_Amount_@currencyID,SupplierInvoiceHeader_BaseCurrencyAmount_Amount_#text,SupplierInvoiceHeader_ShipFromParty_PartyIDs_ID_@accountingEntity,SupplierInvoiceHeader_ShipFromParty_PartyIDs_ID_#text,SupplierInvoiceHeader_ShipFromParty_Name,SupplierInvoice_@type,SupplierInvoiceHeader_Distribution_LedgerID_@accountingEntity,SupplierInvoiceHeader_Distribution_LedgerID_#text,SupplierInvoiceHeader_Distribution_Amount_@currencyID,SupplierInvoiceHeader_Distribution_Amount_#text,SupplierInvoiceHeader_Distribution_BaseAmount_@currencyID,SupplierInvoiceHeader_Distribution_BaseAmount_#text,SupplierInvoiceHeader_Distribution_ReportAmount_@currencyID,SupplierInvoiceHeader_Distribution_ReportAmount_#text,SupplierInvoiceHeader_Distribution_GLAccount_GLNominalAccount,SupplierInvoiceHeader_Distribution_Classification_Description
+,SupplierInvoiceHeader_Distribution_UserArea_NameValue_@name,SupplierInvoiceHeader_Distribution_UserArea_NameValue_#text,SupplierInvoiceHeader_Distribution_UserArea_NameValue_@type
+,REPLACE(right(Parts.value(N'/x[1]','varchar(50)'),charindex(':',reverse(Parts.value(N'/x[1]','varchar(50)')))- 1),'"','')as FD1_Code
+,REPLACE(REPLACE(right(Parts.value(N'/x[2]','varchar(50)'),charindex(':',reverse(Parts.value(N'/x[2]','varchar(50)')))- 1),'"',''),'}','')as FD1_Value
+,REPLACE(right(Parts.value(N'/x[3]','varchar(50)'),charindex(':',reverse(Parts.value(N'/x[3]','varchar(50)')))- 1),'"','')as FD2_Code
+,REPLACE(REPLACE(REPLACE(right(Parts.value(N'/x[4]','varchar(50)'),charindex(':',reverse(Parts.value(N'/x[4]','varchar(50)')))- 1),'"',''),'}',''),']','')as FD2_Value
+,REPLACE(right(Parts.value(N'/x[5]','varchar(50)'),charindex(':',reverse(Parts.value(N'/x[5]','varchar(50)')))- 1),'"','')as FD3_Code
+,REPLACE(REPLACE(REPLACE(right(Parts.value(N'/x[6]','varchar(50)'),charindex(':',reverse(Parts.value(N'/x[6]','varchar(50)')))- 1),'"',''),'}',''),']','')as FD3_Value
+,REPLACE(right(Parts.value(N'/x[7]','varchar(50)'),charindex(':',reverse(Parts.value(N'/x[7]','varchar(50)')))- 1),'"','')as FD4_Code 
+,REPLACE(REPLACE(REPLACE(right(Parts.value(N'/x[8]','varchar(50)'),charindex(':',reverse(Parts.value(N'/x[8]','varchar(50)')))- 1),'"',''),'}',''),']','')as FD4_Value
+into #Temp_CC_FSM_PID
+FROM Splitted;
+--Rearrange dimension Value
+drop table if exists #CC_FSM_PID 
+SELECT Sync_AccountingEntityID,Sync_ActionCriteria_ActionExpression_@actionCode,ApplicationArea_Sender_LogicalID,ApplicationArea_CreationDateTime,ApplicationArea_BODID,SupplierInvoiceHeader_DocumentID_ID_@accountingEntity,SupplierInvoiceHeader_DocumentID_ID_@location,SupplierInvoiceHeader_DocumentID_ID_@variationID,SupplierInvoiceHeader_DocumentID_ID_#text,SupplierInvoiceHeader_AlternateDocumentID_ID_@accountingEntity,SupplierInvoiceHeader_AlternateDocumentID_ID_@schemeName,SupplierInvoiceHeader_AlternateDocumentID_ID_@variationID,SupplierInvoiceHeader_AlternateDocumentID_ID_#text,SupplierInvoiceHeader_DisplayID,SupplierInvoiceHeader_LastModificationDateTime,SupplierInvoiceHeader_LastModificationPerson_IDs_ID,SupplierInvoiceHeader_DocumentDateTime,SupplierInvoiceHeader_DocumentReference_@type,SupplierInvoiceHeader_DocumentReference_DocumentID_ID_@accountingEntity,SupplierInvoiceHeader_DocumentReference_DocumentID_ID_@location,SupplierInvoiceHeader_DocumentReference_DocumentID_ID_#text,SupplierInvoiceHeader_ExtendedAmount_@currencyID,SupplierInvoiceHeader_ExtendedAmount_#text,SupplierInvoiceHeader_ExtendedBaseAmount_@currencyID,SupplierInvoiceHeader_ExtendedBaseAmount_#text,SupplierInvoiceHeader_TotalAmount_@currencyID,SupplierInvoiceHeader_TotalAmount_#text,SupplierInvoiceHeader_TotalBaseAmount_@currencyID,SupplierInvoiceHeader_TotalBaseAmount_#text,SupplierInvoiceHeader_SupplierParty_PartyIDs_ID,SupplierInvoiceHeader_SupplierParty_PartyIDs_TaxID,SupplierInvoiceHeader_SupplierParty_Name,SupplierInvoiceHeader_SupplierParty_Location_Address_AttentionOfName,SupplierInvoiceHeader_SupplierParty_Location_Address_AddressLine_@sequence,SupplierInvoiceHeader_SupplierParty_Location_Address_AddressLine_#text,SupplierInvoiceHeader_SupplierParty_Location_Address_CityName,SupplierInvoiceHeader_SupplierParty_Location_Address_CountrySubDivisionCode,SupplierInvoiceHeader_SupplierParty_Location_Address_CountryCode,SupplierInvoiceHeader_SupplierParty_Location_Address_PostalCode,SupplierInvoiceHeader_SupplierParty_Contact_ID,SupplierInvoiceHeader_SupplierParty_Contact_Name,SupplierInvoiceHeader_RemitToParty_PartyIDs_ID,SupplierInvoiceHeader_RemitToParty_Name,SupplierInvoiceHeader_PurchaseOrderReference_DocumentID_ID_@accountingEntity,SupplierInvoiceHeader_PurchaseOrderReference_DocumentID_ID_#text,SupplierInvoiceHeader_PaymentTerm_DocumentDateTime,SupplierInvoiceHeader_PaymentTerm_Description,SupplierInvoiceHeader_PaymentTerm_PaymentTermCode_@accountingEntity,SupplierInvoiceHeader_PaymentTerm_PaymentTermCode_#text,SupplierInvoiceHeader_PaymentTerm_Discount_Amount_@currencyID,SupplierInvoiceHeader_PaymentTerm_Discount_Amount_#text,SupplierInvoiceHeader_PaymentTerm_Discount_BaseAmount_@currencyID,SupplierInvoiceHeader_PaymentTerm_Discount_BaseAmount_#text,SupplierInvoiceHeader_PaymentTerm_Discount_ReportAmount_@currencyID,SupplierInvoiceHeader_PaymentTerm_Discount_ReportAmount_#text,SupplierInvoiceHeader_PaymentTerm_PaymentSchedule_Term_@type,SupplierInvoiceHeader_PaymentTerm_PaymentSchedule_Term_ID,SupplierInvoiceHeader_PaymentTerm_PaymentSchedule_Term_Description,SupplierInvoiceHeader_PaymentTerm_PaymentSchedule_Term_DueDateTime,SupplierInvoiceHeader_PaymentTerm_PaymentSchedule_Term_DiscountPercent,SupplierInvoiceHeader_PaymentMethodCode,SupplierInvoiceHeader_Status_EffectiveDateTime,SupplierInvoiceHeader_CurrencyExchangeRate_RateNumeric,SupplierInvoiceHeader_BaseCurrencyAmount_Amount_@currencyID,SupplierInvoiceHeader_BaseCurrencyAmount_Amount_#text,SupplierInvoiceHeader_ShipFromParty_PartyIDs_ID_@accountingEntity,SupplierInvoiceHeader_ShipFromParty_PartyIDs_ID_#text,SupplierInvoiceHeader_ShipFromParty_Name,SupplierInvoice_@type,SupplierInvoiceHeader_Distribution_LedgerID_@accountingEntity,SupplierInvoiceHeader_Distribution_LedgerID_#text,SupplierInvoiceHeader_Distribution_Amount_@currencyID,SupplierInvoiceHeader_Distribution_Amount_#text,SupplierInvoiceHeader_Distribution_BaseAmount_@currencyID,SupplierInvoiceHeader_Distribution_BaseAmount_#text,SupplierInvoiceHeader_Distribution_ReportAmount_@currencyID,SupplierInvoiceHeader_Distribution_ReportAmount_#text,SupplierInvoiceHeader_Distribution_GLAccount_GLNominalAccount,SupplierInvoiceHeader_Distribution_Classification_Description
+,CASE WHEN FD1_Code='FinanceDimension1' THEN FD1_Value 
+WHEN FD2_Code='FinanceDimension1' THEN FD2_Value
+WHEN FD3_Code='FinanceDimension1' THEN FD3_Value
+WHEN FD4_Code='FinanceDimension1' THEN FD4_Value
+END as FinanceDimension1
+,CASE WHEN FD1_Code='FinanceDimension4' THEN FD1_Value 
+WHEN FD2_Code='FinanceDimension4' THEN FD2_Value
+WHEN FD3_Code='FinanceDimension4' THEN FD3_Value
+WHEN FD4_Code='FinanceDimension4' THEN FD4_Value
+END as FinanceDimension4
+,CASE WHEN FD1_Code='FinanceDimension5' THEN FD1_Value 
+WHEN FD2_Code='FinanceDimension5' THEN FD2_Value
+WHEN FD3_Code='FinanceDimension5' THEN FD3_Value
+WHEN FD4_Code='FinanceDimension5' THEN FD4_Value
+END as FinanceDimension5
+,CASE WHEN FD1_Code='FinanceDimension7' THEN FD1_Value 
+WHEN FD2_Code='FinanceDimension7' THEN FD2_Value
+WHEN FD3_Code='FinanceDimension7' THEN FD3_Value
+WHEN FD4_Code='FinanceDimension7' THEN FD4_Value
+END as FinanceDimension7
+,SupplierInvoiceHeader_Distribution_UserArea_NameValue_@name
+,SupplierInvoiceHeader_Distribution_UserArea_NameValue_#text
+,SupplierInvoiceHeader_Distribution_UserArea_NameValue_@type
+into #CC_FSM_PID
+from #Temp_CC_FSM_PID
+
+--Pivot
+drop table if exists #Temp_SIH_D
+SELECT * into #Temp_SIH_D
+from 
+(SELECT * FROM #CC_FSM_PID
+where SupplierInvoiceHeader_Distribution_UserArea_NameValue_@name is not null) as a
+PIVOT(MAX(SupplierInvoiceHeader_Distribution_UserArea_NameValue_#text)FOR SupplierInvoiceHeader_Distribution_UserArea_NameValue_@name IN([fsm.AlternateCurrencyAmount],[fsm.AlternateCurrencyAmount2],[fsm.AlternateCurrencyRate],[fsm.AlternateCurrencyRate2],
+[fsm.BaseCurrencyRate],[fsm.DistributionDate],[fsm.DistributionStatus],[fsm.DistributionType],[fsm.PayablesInvoiceDistribution],[fsm.TaxIndicator],[fsm.ToAccountingEntity]))as PVT
+ORDER BY ApplicationArea_BODID
+--Delete duplicate records
+;WITH SIHD as 
+( 
+SELECT *
+,ROW_NUMBER() over (PARTITION BY SupplierInvoiceHeader_DocumentID_ID_@variationID,SupplierInvoiceHeader_DocumentID_ID_#text,[fsm.PayablesInvoiceDistribution],ApplicationArea_CreationDateTime
+	ORDER BY SupplierInvoiceHeader_DocumentID_ID_@variationID,SupplierInvoiceHeader_DocumentID_ID_#text,[fsm.PayablesInvoiceDistribution],ApplicationArea_CreationDateTime) as RN 
+FROM #Temp_SIH_D
+)
+Delete FROM SIHD WHERE RN>1
+--Delete older records
+Delete from #Temp_SIH_D
+from #Temp_SIH_D a
+where exists(select * from #Temp_SIH_D b
+where a.SupplierInvoiceHeader_DocumentID_ID_@variationID=b.SupplierInvoiceHeader_DocumentID_ID_@variationID
+and a.SupplierInvoiceHeader_DocumentID_ID_#text=b.SupplierInvoiceHeader_DocumentID_ID_#text
+and a.[fsm.PayablesInvoiceDistribution]=b.[fsm.PayablesInvoiceDistribution]
+and a.ApplicationArea_CreationDateTime<b.ApplicationArea_CreationDateTime
+)
+--Merge Header tbls
+DROP table if exists dbo.Temp_SupplierInvoiceHeader
+SELECT
+b.ApplicationArea_BODID
+,b.ApplicationArea_CreationDateTime
+,b.Sync_AccountingEntityID
+,b.Sync_ActionCriteria_ActionExpression_@actionCode
+,b.SupplierInvoice_@type
+,b.SupplierInvoiceHeader_DocumentID_ID_@accountingEntity
+,b.SupplierInvoiceHeader_DocumentID_ID_@variationID
+,b.SupplierInvoiceHeader_DocumentID_ID_#text
+,b.SupplierInvoiceHeader_AlternateDocumentID_ID_@variationID
+,b.SupplierInvoiceHeader_AlternateDocumentID_ID_#text
+,b.SupplierInvoiceHeader_DisplayID
+,b.SupplierInvoiceHeader_LastModificationDateTime
+,b.SupplierInvoiceHeader_LastModificationPerson_IDs_ID
+,b.SupplierInvoiceHeader_DocumentDateTime
+,b.SupplierInvoiceHeader_DocumentReference_DocumentID_ID_#text
+,a.SupplierInvoiceHeader_ExtendedAmount_@currencyID
+,b.SupplierInvoiceHeader_ExtendedAmount_#text
+,SupplierInvoiceHeader_ExtendedBaseAmount_@currencyID
+,b.SupplierInvoiceHeader_ExtendedBaseAmount_#text
+,SupplierInvoiceHeader_TotalAmount_@currencyID
+,b.SupplierInvoiceHeader_TotalAmount_#text
+,SupplierInvoiceHeader_TotalBaseAmount_@currencyID
+,b.SupplierInvoiceHeader_TotalBaseAmount_#text
+,b.SupplierInvoiceHeader_SupplierParty_PartyIDs_ID
+,b.SupplierInvoiceHeader_SupplierParty_PartyIDs_TaxID
+,b.SupplierInvoiceHeader_SupplierParty_Name
+,b.SupplierInvoiceHeader_SupplierParty_Location_Address_AttentionOfName
+,SupplierInvoiceHeader_SupplierParty_Location_Address_AddressLine_@sequence
+,b.SupplierInvoiceHeader_SupplierParty_Location_Address_AddressLine_#text
+,b.SupplierInvoiceHeader_SupplierParty_Location_Address_CityName
+,b.SupplierInvoiceHeader_SupplierParty_Location_Address_CountrySubDivisionCode
+,b.SupplierInvoiceHeader_SupplierParty_Location_Address_CountryCode
+,b.SupplierInvoiceHeader_SupplierParty_Location_Address_PostalCode
+,SupplierInvoiceHeader_SupplierParty_Contact_ID
+,b.SupplierInvoiceHeader_SupplierParty_Contact_Name
+,b.SupplierInvoiceHeader_RemitToParty_PartyIDs_ID
+,b.SupplierInvoiceHeader_RemitToParty_Name
+,b.SupplierInvoiceHeader_PurchaseOrderReference_DocumentID_ID_@accountingEntity
+,b.SupplierInvoiceHeader_PurchaseOrderReference_DocumentID_ID_#text
+,b.SupplierInvoiceHeader_PaymentTerm_DocumentDateTime
+,b.SupplierInvoiceHeader_PaymentTerm_Description
+,SupplierInvoiceHeader_PaymentTerm_PaymentTermCode_@accountingEntity
+,b.SupplierInvoiceHeader_PaymentTerm_PaymentTermCode_#text
+,SupplierInvoiceHeader_PaymentTerm_Discount_Amount_@currencyID
+,b.SupplierInvoiceHeader_PaymentTerm_Discount_Amount_#text
+,SupplierInvoiceHeader_PaymentTerm_Discount_BaseAmount_@currencyID
+,b.SupplierInvoiceHeader_PaymentTerm_Discount_BaseAmount_#text
+,SupplierInvoiceHeader_PaymentTerm_Discount_ReportAmount_@currencyID
+,b.SupplierInvoiceHeader_PaymentTerm_Discount_ReportAmount_#text
+,b.SupplierInvoiceHeader_PaymentTerm_PaymentSchedule_Term_@type
+,b.SupplierInvoiceHeader_PaymentTerm_PaymentSchedule_Term_ID
+,b.SupplierInvoiceHeader_PaymentTerm_PaymentSchedule_Term_Description
+,b.SupplierInvoiceHeader_PaymentTerm_PaymentSchedule_Term_DueDateTime
+,b.SupplierInvoiceHeader_PaymentTerm_PaymentSchedule_Term_DiscountPercent
+,b.SupplierInvoiceHeader_PaymentMethodCode
+,SupplierInvoiceHeader_Status_Code_@listID
+,SupplierInvoiceHeader_Status_Code_#text
+,b.SupplierInvoiceHeader_Status_EffectiveDateTime
+,b.SupplierInvoiceHeader_CurrencyExchangeRate_RateNumeric
+,SupplierInvoiceHeader_BaseCurrencyAmount_Amount_@currencyID
+,b.SupplierInvoiceHeader_BaseCurrencyAmount_Amount_#text
+,SupplierInvoiceHeader_ShipFromParty_PartyIDs_ID_@accountingEntity
+,b.SupplierInvoiceHeader_ShipFromParty_PartyIDs_ID_#text
+,b.SupplierInvoiceHeader_ShipFromParty_Name
+,[fsm.AccountingEntity]
+,[fsm.CancelledDateTime]
+,[fsm.CashCode]
+,[fsm.CreateDateTime]
+,[fsm.CreatedBy]
+,[fsm.Enclosure]
+,[fsm.FinanceEnterpriseGroup]
+,[fsm.FiscalPeriod]
+,[fsm.FiscalYear]
+,[fsm.GeneralLedgerCompany]
+,[fsm.Generic_Delimiter]
+,[fsm.Hold]
+,[fsm.HoldCode]
+,[fsm.HoldCodeCreateDate]
+,[fsm.HoldCodeDeleteDate]
+,[fsm.IncomeCode]
+,[fsm.IncomeWithholding]
+,[fsm.InvoiceNumber]
+,[fsm.PayablesInvoice]
+,[fsm.PaymentDate]
+,[fsm.PaymentStatus]
+,[fsm.ProcessedBy]
+,[fsm.ReceiptOfInvoiceDate]
+,[fsm.Reference]
+,[fsm.SeparatePayment]
+,[fsm.Voucher]
+,[lcl.FiscalPeriod]
+,[lcl.FiscalYear]
+,VendorGroup
+,CashCode
+,EMail
+,Phone
+,ApplicationArea_Sender_LogicalID
+,SupplierInvoiceHeader_DocumentID_ID_@location
+,SupplierInvoiceHeader_AlternateDocumentID_ID_@accountingEntity
+,SupplierInvoiceHeader_AlternateDocumentID_ID_@schemeName
+,SupplierInvoiceHeader_DocumentReference_@type
+,SupplierInvoiceHeader_DocumentReference_DocumentID_ID_@accountingEntity
+,SupplierInvoiceHeader_DocumentReference_DocumentID_ID_@location
+,SupplierInvoiceHeader_Distribution_LedgerID_@accountingEntity
+,SupplierInvoiceHeader_Distribution_LedgerID_#text
+,SupplierInvoiceHeader_Distribution_Amount_@currencyID
+,SupplierInvoiceHeader_Distribution_Amount_#text
+,SupplierInvoiceHeader_Distribution_BaseAmount_@currencyID
+,SupplierInvoiceHeader_Distribution_BaseAmount_#text
+,SupplierInvoiceHeader_Distribution_ReportAmount_@currencyID
+,SupplierInvoiceHeader_Distribution_ReportAmount_#text
+,SupplierInvoiceHeader_Distribution_GLAccount_GLNominalAccount
+,SupplierInvoiceHeader_Distribution_Classification_Description
+,FinanceDimension1
+,FinanceDimension4
+,FinanceDimension5
+,FinanceDimension7
+,[fsm.AlternateCurrencyAmount]
+,[fsm.AlternateCurrencyAmount2]
+,[fsm.AlternateCurrencyRate]
+,[fsm.AlternateCurrencyRate2]
+,[fsm.BaseCurrencyRate]
+,[fsm.DistributionDate]
+,[fsm.DistributionStatus]
+,[fsm.DistributionType]
+,[fsm.PayablesInvoiceDistribution]
+,[fsm.TaxIndicator]
+,[fsm.ToAccountingEntity]
+into dbo.Temp_SupplierInvoiceHeader
+from #Temp_SIH_D a
+Join #Temp_Mstr_SIH b on a.ApplicationArea_BODID=b.ApplicationArea_BODID
+and a.SupplierInvoiceHeader_DocumentID_ID_@variationID=b.SupplierInvoiceHeader_DocumentID_ID_@variationID
+and a.SupplierInvoiceHeader_DocumentID_ID_#text=b.SupplierInvoiceHeader_DocumentID_ID_#text
+and a.ApplicationArea_CreationDateTime=b.ApplicationArea_CreationDateTime
